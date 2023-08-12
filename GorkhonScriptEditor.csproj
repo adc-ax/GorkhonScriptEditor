@@ -4,11 +4,12 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>ui_lockpick_c.ico</ApplicationIcon>
+    <ApplicationIcon>GSELOGO_PARCHMENT_ABB-256.ico</ApplicationIcon>
     <Version>0.1.0</Version>
     <Platforms>AnyCPU;x64</Platforms>
     <StartupObject>GorkhonScriptEditor.App</StartupObject>
     <UseWindowsForms>True</UseWindowsForms>
+    <PackageIcon>GSELOGO-256.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +31,7 @@
     <Resource Include="Resources\OpenfileDialog.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Content Include="GSELOGO_PARCHMENT_ABB-256.ico" />
     <Content Include="Resources\OpenfileDialog.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
