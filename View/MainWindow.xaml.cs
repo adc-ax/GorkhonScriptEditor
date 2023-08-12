@@ -69,12 +69,12 @@ namespace GorkhonScriptEditor
 
         private void Manual_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Early-stage work in progress, importing more complex scripts can result in a crash, editing is limited and rudimentary. \nPlease back up your scripts before editing just in case. Have fun!","Help");
+            MessageBox.Show("Early-stage work in progress, importing more complex scripts can result in a crash, editing is limited and rudimentary.","Help");
         }
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Gorkhon Script Editor 0.1.0 pre-release 3\nBy adc_ax \nAdditional research: RoSoDude, DigiDragon7, \nTilalgis, rathologic \n08/01/2023","About");
+            MessageBox.Show("Gorkhon Script Editor 0.1.0\nBy adc_ax \nAdditional research: RoSoDude, DigiDragon7, \nTilalgis, rathologic \n08/13/2023","About");
         }
 
         private void OpenParsed_Click(object sender, RoutedEventArgs e)

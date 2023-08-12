@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         
         
-        Title="{Binding WindowTitle}" Height="720" Width="1280">
+        Title="{Binding WindowTitle}" Height="720" Width="1280" Background="#FFDDDDDD">
     <Window.DataContext>
         <ViewModel:CMainWindowViewModel x:Name="PrimaryWindow"/>
     </Window.DataContext>
@@ -31,7 +31,7 @@
         </Grid.RowDefinitions>
         
         <DockPanel Grid.ColumnSpan="4" Grid.RowSpan="1">
-            <Menu DockPanel.Dock="Top">
+            <Menu DockPanel.Dock="Top" Background="#FFDDDDDD">
                 <MenuItem Header="_File">
                     <MenuItem Header="_Import" Command="{Binding LoadBinaryCommand}" />
                     <MenuItem Header="_Export" Command="{Binding ExportScriptCommand}" />
@@ -162,12 +162,13 @@
                             <DataTemplate>
                                 <Expander>
                                     <Expander.Header>
-                                        <Button Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Name}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="LAB "/>
-                                                <TextBlock Text="{Binding Path=Name, Mode=TwoWay, StringFormat=0x{0:X5}}"/>
-                                            </StackPanel>
-                                        </Button>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="LAB "/>
+                                            <TextBlock Text="{Binding Path=Name, Mode=TwoWay, StringFormat=0x{0:X5}}"/>
+                                            <StackPanel.InputBindings>
+                                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Name}"></MouseBinding>
+                                            </StackPanel.InputBindings>
+                                        </StackPanel>
                                     </Expander.Header>
                                     <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
                                         <ListView.ItemTemplate>
@@ -190,12 +191,15 @@
                             <DataTemplate>
                                 <Expander>
                                     <Expander.Header>
-                                        <Button Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding SubName}">
+                                    
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="SUB "/>
                                                 <TextBlock Text="{Binding Path=SubName, Mode=TwoWay, StringFormat=0x{0:X5}}"/>
+                                                <StackPanel.InputBindings>
+                                                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=SubName}"></MouseBinding>
+                                            </StackPanel.InputBindings>
                                             </StackPanel>
-                                        </Button>
+                                    
                                     </Expander.Header>
                                     <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
                                         <ListView.ItemTemplate>
