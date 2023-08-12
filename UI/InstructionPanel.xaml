@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="GorkhonScriptEditor.UI.InstructionPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GorkhonScriptEditor.UI"
+             mc:Ignorable="d" 
+             >
+    
+        <VirtualizingStackPanel Orientation="Horizontal" Margin="3">
+            <TextBlock x:Name="lineNumberBlock">lineNumberBlock</TextBlock>
+            <TextBlock x:Name="opCodeBlock" FontWeight="Bold" Foreground="#8600D8">opCodeBlock</TextBlock>
+            <TextBox x:Name ="operandsBlock" IsReadOnly="True" Width="130"  TextWrapping="Wrap" Margin="15 0 15 0" BorderBrush="Transparent" Foreground="#9B9E72">operandsBlock</TextBox>
+            <TextBox x:Name="instructionBlock" IsReadOnly="True" Margin="10 0 0 0" BorderBrush="Transparent" FontWeight="Bold">instructionBlock</TextBox>
+        </VirtualizingStackPanel>
+        
+        
+    
+</UserControl>

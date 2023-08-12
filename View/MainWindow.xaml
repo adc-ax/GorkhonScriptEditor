@@ -1,0 +1,241 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GorkhonScriptEditor"
+        xmlns:ViewModel="clr-namespace:GorkhonScriptEditor.ViewModel" x:Class="GorkhonScriptEditor.MainWindow"
+        mc:Ignorable="d"
+        
+        
+        Title="{Binding WindowTitle}" Height="720" Width="1280">
+    <Window.DataContext>
+        <ViewModel:CMainWindowViewModel x:Name="PrimaryWindow"/>
+    </Window.DataContext>
+    <Window.Resources>
+        <local:FunctionConverter  x:Key="functionConverter"/>
+    </Window.Resources>
+    
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="285"/>
+            <ColumnDefinition Width="5px"/>
+            <ColumnDefinition Width="757*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20px"/>
+            <RowDefinition Height="20px"/>
+            <RowDefinition Height="377*"/>
+        </Grid.RowDefinitions>
+        
+        <DockPanel Grid.ColumnSpan="4" Grid.RowSpan="1">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Import" Command="{Binding LoadBinaryCommand}" />
+                    <MenuItem Header="_Export" Command="{Binding ExportScriptCommand}" />
+                    <MenuItem Header="Exit" Click="Exit_Click" />
+                </MenuItem>
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_View Help" Click="Manual_Click"/>
+                    <MenuItem Header="_About" Click="About_Click" />
+                </MenuItem>
+            </Menu>
+        </DockPanel>
+
+        <DockPanel Grid.ColumnSpan="4" Grid.RowSpan="1" Grid.Row="1" Background="#FFDDDDDD">
+            <Button Width="20" HorizontalAlignment="Left" Command="{Binding LoadBinaryCommand}" Margin="7,0,0,0" BorderBrush="#FFDDDDDD" ToolTip="Import script">
+                <Image Source="/Resources/OpenfileDialog.png"/>
+            </Button>
+            <Button Width="20" HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" Margin="7,0,0,0" ToolTip="Reassemble script">
+                <Image Source="/Resources/Process.png"/>
+            </Button>
+            <TextBox x:Name="targetLine" Width="60" HorizontalAlignment="Left"></TextBox>
+            <Button Command="{Binding GotoLineCommand}" CommandParameter="{Binding Text, ElementName=targetLine}" Width="20" HorizontalAlignment="Left">
+                <TextBlock>Go</TextBlock>
+            </Button>    
+       
+        </DockPanel>
+
+        <ListView x:Name="LinesScrollViewer" Grid.Column="3" Grid.Row="2"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Lines, Mode=TwoWay}" SelectedItem="{Binding LineOfInterest, Mode=TwoWay}" SelectionChanged="ListView_SelectionChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal" Margin="3">
+                        <TextBlock Text="{Binding LineNumber}" Background="Transparent"/>
+                        <TextBox Text="{Binding Operands, Mode=TwoWay}" Background="Transparent" IsReadOnly="False" Width="180"  TextWrapping="Wrap" Margin="15 0 15 0" Foreground="#FF005B99" SelectionBrush="Black" SelectionTextBrush="White" BorderBrush="Transparent"/>
+                        <TextBlock Text="{Binding InstructionName}" Background="Transparent"  Width="140"  TextWrapping="Wrap" Margin="15 0 15 0"  Foreground="{Binding OpCodeBrush}"/>
+                        <TextBlock Text="{Binding InstructionComment}" Background="Transparent" Width="280" TextWrapping="Wrap" Margin="10 0 0 0" Foreground="{Binding Foreground}"/>
+                    </VirtualizingStackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="{x:Type ListViewItem}">
+                    <Setter Property="Focusable"  Value="False" />
+
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        <GridSplitter Grid.Column="2" 
+              Grid.Row="2"
+              Grid.RowSpan="1" 
+              ResizeBehavior="PreviousAndNext"        
+              HorizontalAlignment="Center"
+              
+              ShowsPreview="true"
+              Width="5"/>
+        <TabControl Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Background="White">
+            <TabItem>
+                
+                <TabItem.Header>
+                    <TextBlock Text="Tasks/Events"/>
+                </TabItem.Header>
+                <ScrollViewer>
+                <StackPanel>
+                    <Expander Header="Tasks">
+                    <ListView ItemsSource="{Binding MainScript.SectionBTaskList}" Margin="0 0 0 0">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Expander>
+                                        <Expander.Header>
+                                            <TextBlock Text="{Binding}"></TextBlock>
+                                        </Expander.Header>
+                                    
+                                    <ListView ItemsSource="{Binding ListEvents}" Margin="22 0 0 0"></ListView>
+                                </Expander>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                        </Expander>
+                        <Expander Header="Global events">
+                            <ListView ItemsSource="{Binding MainScript.TaskCEvents}" Margin="22 0 0 0">
+                            </ListView>
+                        </Expander>
+                    
+                </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Strings"/>
+                </TabItem.Header>
+                <ListView ItemsSource="{Binding MainScript.StringConstants}">
+                    
+                </ListView>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Functions"/>
+                </TabItem.Header>
+                <ListView ItemsSource="{Binding MainScript.ListFunctions}" d:ItemsSource="{d:SampleData ItemCount=5}" ScrollViewer.CanContentScroll="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Expander Header="{Binding}">
+                                <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Path=., StringFormat=0x{0:X5}}" x:Name="funcCall" Width="Auto">
+                                                <TextBlock.InputBindings>
+                                                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Text,ElementName=funcCall}"></MouseBinding>
+                                                </TextBlock.InputBindings>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Expander>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Subroutines / Labels"/>
+                </TabItem.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ListView Grid.ColumnSpan="1" x:Name="LabelsScrollViewer" Grid.Column="0"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Labels}" SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Expander>
+                                    <Expander.Header>
+                                        <Button Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Name}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="LAB "/>
+                                                <TextBlock Text="{Binding Path=Name, Mode=TwoWay, StringFormat=0x{0:X5}}"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Expander.Header>
+                                    <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Path=., StringFormat=0x{0:X5}}" x:Name="labJump">
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Text,ElementName=labJump}"></MouseBinding>
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Expander>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+       
+                    </ListView>
+                    <ListView Grid.ColumnSpan="1" x:Name="SubroutinesScrollViewer" Grid.Column="1" FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Subroutines}" SelectionMode="Single" SelectionChanged="ListView_SelectionChanged">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Expander>
+                                    <Expander.Header>
+                                        <Button Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding SubName}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="SUB "/>
+                                                <TextBlock Text="{Binding Path=SubName, Mode=TwoWay, StringFormat=0x{0:X5}}"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Expander.Header>
+                                    <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Path=., StringFormat=0x{0:X5}}" x:Name="subCall">
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Text,ElementName=subCall}"></MouseBinding>
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Expander>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Globals"/>
+                </TabItem.Header>
+                <ListView x:Name="GlobalsListView" Grid.Column="3" Grid.Row="2" FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.listGlobalVars}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding ID}" FontWeight="Bold"/>
+                                <TextBlock Text=", Name: "/>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                <TextBlock Text=", Type: "/>
+                                <TextBlock Text="{Binding TypeName}" FontWeight="Bold"/>
+                            </VirtualizingStackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <!--<RichTextBox x:Name="SubroutinesTextBox"  IsReadOnly="True" VerticalScrollBarVisibility="Auto" FontFamily="Lucida Console" IsReadOnlyCaretVisible="True" Grid.RowSpan="1"/>-->
+            </TabItem>
+        </TabControl>
+
+
+    </Grid>
+</Window>
