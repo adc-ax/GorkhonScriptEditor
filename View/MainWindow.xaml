@@ -48,17 +48,17 @@
             <Button Width="20" HorizontalAlignment="Left" Command="{Binding LoadBinaryCommand}" Margin="7,0,0,0" BorderBrush="#FFDDDDDD" ToolTip="Import script">
                 <Image Source="/Resources/OpenfileDialog.png"/>
             </Button>
-            <Button Width="20" HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" Margin="7,0,0,0" ToolTip="Reassemble script">
+            <Button Width="20" HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" Margin="7,0,0,0" ToolTip="Reassemble script" IsEnabled="{Binding Path=InterfaceEnabled}">
                 <Image Source="/Resources/Process.png"/>
             </Button>
-            <TextBox x:Name="targetLine" Width="60" HorizontalAlignment="Left"></TextBox>
-            <Button Command="{Binding GotoLineCommand}" CommandParameter="{Binding Text, ElementName=targetLine}" Width="20" HorizontalAlignment="Left">
+            <TextBox x:Name="targetLine" Width="60" HorizontalAlignment="Left" Margin="7,0,0,0" IsEnabled="{Binding Path=InterfaceEnabled}"></TextBox>
+            <Button Command="{Binding GotoLineCommand}" CommandParameter="{Binding Text, ElementName=targetLine}" Width="20" HorizontalAlignment="Left" IsEnabled="{Binding Path=InterfaceEnabled}">
                 <TextBlock>Go</TextBlock>
             </Button>    
        
         </DockPanel>
 
-        <ListView x:Name="LinesScrollViewer" Grid.Column="3" Grid.Row="2"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Lines, Mode=TwoWay}" SelectedItem="{Binding LineOfInterest, Mode=TwoWay}" SelectionChanged="ListView_SelectionChanged">
+        <ListView x:Name="LinesScrollViewer" Grid.Column="3" Grid.Row="2"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Lines, Mode=TwoWay}" SelectedItem="{Binding LineOfInterest, Mode=TwoWay}" SelectionChanged="ListView_SelectionChanged"  IsEnabled="{Binding Path=InterfaceEnabled}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <VirtualizingStackPanel Orientation="Horizontal" Margin="3">
@@ -84,7 +84,7 @@
               
               ShowsPreview="true"
               Width="5"/>
-        <TabControl Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Background="White">
+        <TabControl Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Background="White" IsEnabled="{Binding Path=InterfaceEnabled}">
             <TabItem>
                 
                 <TabItem.Header>

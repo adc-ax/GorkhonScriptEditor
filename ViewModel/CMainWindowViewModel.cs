@@ -37,6 +37,9 @@ namespace GorkhonScriptEditor.ViewModel
         [ObservableProperty]
         public CLine lineOfInterest;
 
+        [ObservableProperty]
+        public bool interfaceEnabled = false;
+
         [RelayCommand]
         private void GotoLine(string tar)
         {
@@ -89,6 +92,7 @@ namespace GorkhonScriptEditor.ViewModel
                 MainScript = new CScript(binaryData);
 
                 state = ProgramState.Loaded;
+                InterfaceEnabled = true;
                 LineOfInterest = MainScript.Lines[0];
 
                 //Save a backup file here
