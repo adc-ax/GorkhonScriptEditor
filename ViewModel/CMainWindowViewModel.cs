@@ -121,7 +121,8 @@ namespace GorkhonScriptEditor.ViewModel
 
                     if (saveFileDialog.FilterIndex == 1)
                     {
-                        //System.IO.File.WriteAllLines(fileName, scriptCurrent.stringRepresentation);
+                        String[] test = { "Text exporting temporarily disabled", "until parsing into text is reworked" };
+                        System.IO.File.WriteAllLines(fileName, test);
                         //MessageBox.Show("Text exporting temporarily disabled until parsing into text is reworked");
                         return;
                     }

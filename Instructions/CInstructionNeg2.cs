@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x41;
             Args = args;
-            DisplayString = ("NEG stack[" + ((int)Args[0]).ToString("X2") + "] -> stack[" + Args[1].ToString() + "] w/ param " + Args[2].ToString());
+            DisplayString = ("NEG stack[" + ((int)Args[0]).ToString() + "] -> stack[" + Args[1].ToString() + "] w/ param " + Args[2].ToString());
             binaryRepresentation = bin;
         }
 

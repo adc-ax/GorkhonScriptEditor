@@ -34,7 +34,7 @@
             <Menu DockPanel.Dock="Top" Background="#FFDDDDDD">
                 <MenuItem Header="_File">
                     <MenuItem Header="_Import" Command="{Binding LoadBinaryCommand}" />
-                    <MenuItem Header="_Export" Command="{Binding ExportScriptCommand}" />
+                    <MenuItem Header="_Export" Command="{Binding ExportScriptCommand}" IsEnabled="{Binding Path=InterfaceEnabled}"/>
                     <MenuItem Header="Exit" Click="Exit_Click" />
                 </MenuItem>
                 <MenuItem Header="_Help">
