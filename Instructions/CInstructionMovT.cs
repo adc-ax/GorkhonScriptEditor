@@ -7,9 +7,9 @@ namespace GorkhonScriptEditor.Instructions
     {
         public CInstructionMovT(List<Object> args, List<byte> bin)
         {
-            OPCode = 0;
+            OPCode = 0x6;
             Args = args;
-            DisplayString = ("MOVT [" + Args[0].ToString() + "] -> [" + Args[1].ToString() + "]");
+            DisplayString = ("MOV taskVar #" + Args[0].ToString() + " -> stack[" + Args[1].ToString() + "]");
             binaryRepresentation = bin;
         }
 

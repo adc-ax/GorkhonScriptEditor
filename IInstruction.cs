@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor
         UInt16 OPCode { get; set; }
         UInt32 ByteOffset { get; set; }
 
-        UInt32 ID { get; set; }
+        public UInt32 ID { get; set; }
 
         List<Object> Args { get; set; }
 

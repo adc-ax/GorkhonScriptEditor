@@ -13,9 +13,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Backwards.png" />
+    <None Remove="Resources\Forwards.png" />
     <None Remove="Resources\OpenfileDialog.png" />
     <None Remove="Resources\OpenfileDialog.svg" />
     <None Remove="Resources\Process.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Resources\Forwards.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,12 +34,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Backwards.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Forwards.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\OpenfileDialog.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Content Include="GSELOGO_PARCHMENT_ABB-256.ico" />
+    <Content Include="Resources\Forwards.xaml" />
     <Content Include="Resources\OpenfileDialog.svg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\Process.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

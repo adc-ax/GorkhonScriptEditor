@@ -20,13 +20,15 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="285"/>
+            <ColumnDefinition Width="185"/>
             <ColumnDefinition Width="5px"/>
-            <ColumnDefinition Width="757*"/>
+            <ColumnDefinition Width="850*"/>
+            <ColumnDefinition Width="5px"/>
+            <ColumnDefinition Width="185*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20px"/>
-            <RowDefinition Height="20px"/>
+            <RowDefinition Height="30px"/>
             <RowDefinition Height="377*"/>
         </Grid.RowDefinitions>
         
@@ -37,6 +39,9 @@
                     <MenuItem Header="_Export" Command="{Binding ExportScriptCommand}" IsEnabled="{Binding Path=InterfaceEnabled}"/>
                     <MenuItem Header="Exit" Click="Exit_Click" />
                 </MenuItem>
+                <MenuItem Header="_Edit">
+                    <MenuItem Header="_Append instruction" Command="{Binding AddInstructionCommand}" IsEnabled="{Binding Path=InterfaceEnabled}" />
+                </MenuItem>
                 <MenuItem Header="_Help">
                     <MenuItem Header="_View Help" Click="Manual_Click"/>
                     <MenuItem Header="_About" Click="About_Click" />
@@ -44,20 +49,25 @@
             </Menu>
         </DockPanel>
 
-        <DockPanel Grid.ColumnSpan="4" Grid.RowSpan="1" Grid.Row="1" Background="#FFDDDDDD">
-            <Button Width="20" HorizontalAlignment="Left" Command="{Binding LoadBinaryCommand}" Margin="7,0,0,0" BorderBrush="#FFDDDDDD" ToolTip="Import script">
-                <Image Source="/Resources/OpenfileDialog.png"/>
+        <ToolBar Grid.ColumnSpan="6" Grid.RowSpan="1" Grid.Row="1" Background="#FFDDDDDD" >
+            <Button Command="{Binding LoadBinaryCommand}" BorderBrush="#FFDDDDDD" ToolTip="Import script">
+                <Image Source="/Resources/OpenfileDialog.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
-            <Button Width="20" HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" Margin="7,0,0,0" ToolTip="Reassemble script" IsEnabled="{Binding Path=InterfaceEnabled}">
-                <Image Source="/Resources/Process.png"/>
+            <Button  HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" ToolTip="Reassemble script" IsEnabled="{Binding Path=InterfaceEnabled}">
+                <Image Source="/Resources/Process.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
-            <TextBox x:Name="targetLine" Width="60" HorizontalAlignment="Left" Margin="7,0,0,0" IsEnabled="{Binding Path=InterfaceEnabled}"></TextBox>
-            <Button Command="{Binding GotoLineCommand}" CommandParameter="{Binding Text, ElementName=targetLine}" Width="20" HorizontalAlignment="Left" IsEnabled="{Binding Path=InterfaceEnabled}">
-                <TextBlock>Go</TextBlock>
-            </Button>    
-       
-        </DockPanel>
-
+            <Separator/>
+            <TextBox x:Name="targetLine" Width="60"  IsEnabled="{Binding Path=InterfaceEnabled}"></TextBox>
+            <Button Command="{Binding GotoLineCommand}" CommandParameter="{Binding Text, ElementName=targetLine}"  IsEnabled="{Binding Path=InterfaceEnabled}" BorderBrush="#FFB4B4B4">
+                <TextBlock Height="Auto">Go</TextBlock>
+            </Button>
+            <Button Command="{Binding GoBackCommand}" IsEnabled="{Binding Path=CanGoBack}"  BorderBrush="#FFDDDDDD">
+                <Image Source="/Resources/Backwards.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+            </Button>
+            <Button Command="{Binding GoForwardCommand}"  IsEnabled="{Binding Path=CanGoForward}" BorderBrush="#FFDDDDDD">
+                <Image Source="/Resources/Forwards.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+            </Button>
+        </ToolBar>
         <ListView x:Name="LinesScrollViewer" Grid.Column="3" Grid.Row="2"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Lines, Mode=TwoWay}" SelectedItem="{Binding LineOfInterest, Mode=TwoWay}" SelectionChanged="ListView_SelectionChanged"  IsEnabled="{Binding Path=InterfaceEnabled}">
             <ListView.ItemTemplate>
                 <DataTemplate>
@@ -80,8 +90,14 @@
               Grid.Row="2"
               Grid.RowSpan="1" 
               ResizeBehavior="PreviousAndNext"        
-              HorizontalAlignment="Center"
-              
+              HorizontalAlignment="Right"
+              ShowsPreview="true"
+              Width="5"/>
+        <GridSplitter Grid.Column="4" 
+              Grid.Row="2"
+              Grid.RowSpan="1" 
+              ResizeBehavior="PreviousAndNext"        
+              HorizontalAlignment="Left"
               ShowsPreview="true"
               Width="5"/>
         <TabControl Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Background="White" IsEnabled="{Binding Path=InterfaceEnabled}">
@@ -92,6 +108,16 @@
                 </TabItem.Header>
                 <ScrollViewer>
                 <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock>Entry task: #</TextBlock>
+                            <TextBlock Text="{Binding Path=MainScript.SectionAA, StringFormat=0x{0:X5}}"></TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock> Entry subroutine: #</TextBlock>
+                        <TextBlock Text="{Binding Path=MainScript.SectionAB,StringFormat=0x{0:X5}}"></TextBlock>
+                    </StackPanel>
+
+
                     <Expander Header="Tasks">
                     <ListView ItemsSource="{Binding MainScript.SectionBTaskList}" Margin="0 0 0 0">
                         <ListView.ItemTemplate>
@@ -127,25 +153,31 @@
                 <TabItem.Header>
                     <TextBlock Text="Functions"/>
                 </TabItem.Header>
-                <ListView ItemsSource="{Binding MainScript.ListFunctions}" d:ItemsSource="{d:SampleData ItemCount=5}" ScrollViewer.CanContentScroll="False">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Expander Header="{Binding}">
-                                <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Path=., StringFormat=0x{0:X5}}" x:Name="funcCall" Width="Auto">
-                                                <TextBlock.InputBindings>
-                                                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Text,ElementName=funcCall}"></MouseBinding>
-                                                </TextBlock.InputBindings>
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-                            </Expander>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                
+                    
+                        <ListView ItemsSource="{Binding MainScript.ListFunctions}" ScrollViewer.CanContentScroll="False">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Header="{Binding}">
+                                        <ListView ItemsSource="{Binding Path=Calls}" Margin="30 0 0 0">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Path=., StringFormat=0x{0:X5}}" x:Name="funcCall" Width="Auto">
+                                                        <TextBlock.InputBindings>
+                                                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=Text,ElementName=funcCall}"></MouseBinding>
+                                                        </TextBlock.InputBindings>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </Expander>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        
+
+                    
+                
             </TabItem>
             <TabItem>
                 <TabItem.Header>
@@ -223,7 +255,7 @@
                 <TabItem.Header>
                     <TextBlock Text="Globals"/>
                 </TabItem.Header>
-                <ListView x:Name="GlobalsListView" Grid.Column="3" Grid.Row="2" FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.listGlobalVars}">
+                <ListView x:Name="GlobalsListView" Grid.Column="3" Grid.Row="2" FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.ListGlobalVars}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <VirtualizingStackPanel Orientation="Horizontal">
@@ -238,8 +270,34 @@
                 </ListView>
                 <!--<RichTextBox x:Name="SubroutinesTextBox"  IsReadOnly="True" VerticalScrollBarVisibility="Auto" FontFamily="Lucida Console" IsReadOnlyCaretVisible="True" Grid.RowSpan="1"/>-->
             </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="Constants"/>
+                </TabItem.Header>
+                <ListView ItemsSource="{Binding MainScript.DataConstants}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text ="{Binding Path=.}" Width="Auto">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Path=GotoLineCommand,ElementName=PrimaryWindow}" CommandParameter="{Binding Path=LocationString}"></MouseBinding>
+                                </TextBlock.InputBindings>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </TabItem>
         </TabControl>
+        <StackPanel Orientation="Vertical" Grid.Column="5" Grid.Row="2" Grid.ColumnSpan="2" Background="#FFDDDDDD" IsEnabled="{Binding Path=InterfaceEnabled}" Width="Auto">
+            <TextBlock TextWrapping="Wrap" Text="Quick actions:" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+            <Button Command="{Binding Path=AddInstructionCommand}" Margin="0,8,0,0">Append instruction</Button>
+            <DockPanel>
+                <TextBox DockPanel.Dock="Top" Width="Auto" x:Name="newFuncName" Text="{Binding Path=NewFunctionName,Mode=TwoWay}"></TextBox>
+                <TextBox x:Name="newFuncArgs" Text="{Binding Path=NewFunctionArguments,Mode=TwoWay}"></TextBox>
+            </DockPanel>
+            <Button Command="{Binding Path=AddFunctionCommand}">Add function</Button>
+            
 
+        </StackPanel>
 
     </Grid>
 </Window>

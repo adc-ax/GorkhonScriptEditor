@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x1D;
             Args = args;
-            DisplayString = ("SETNULL " + Args[0].ToString());
+            DisplayString = ("SetNull stack[" + Args[0].ToString()+"]");
             binaryRepresentation = bin;
         }
 

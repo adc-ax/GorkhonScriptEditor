@@ -10,7 +10,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x18;
             Args = args;
-            DisplayString = ("PUSH stack[" + Args[0].ToString() + "] if stack[" + Args[2].ToString() + "]");
+            DisplayString = ("PUSH element stack[" + Args[0].ToString() + "] if stack[" + Args[2].ToString() + "]");
             binaryRepresentation = bin;
         }
 

@@ -120,7 +120,7 @@ namespace GorkhonScriptEditor
                 case 0x2E: InGameName = "0x2E - maybe WndMessage"; break; //up
                 case 0x2F: InGameName = "0x2F - maybe PlayerEnemy"; break; //up
                 case 0x30: InGameName = "0x30 - maybe LSHAnimationEnd"; break; //up
-                default:   InGameName = "Unknown, bug adc_ax"; break;
+                default:   InGameName = "0x"+name.ToString("X5")+": Unknown, bug adc_ax"; break;
             }
 
         }

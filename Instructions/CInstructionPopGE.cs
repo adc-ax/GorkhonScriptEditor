@@ -10,7 +10,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x1C;
             Args = args;
-            DisplayString = ("POP" + Args[1].ToString() + " items if stack[" + Args[0].ToString() + "] ");
+            DisplayString = ("POP globalVar #" + Args[0].ToString() + " with yet-unknown arg " + Args[1].ToString());
             binaryRepresentation = bin;
         }
 

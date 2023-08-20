@@ -3,15 +3,27 @@ using System.Collections.Generic;
 
 namespace GorkhonScriptEditor.Instructions
 {
-    class CInstructionFuncExist : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, IInstruction
+    class CInstructionTMovS : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, IInstruction
     {
-        public CInstructionFuncExist(List<Object> args, List<byte> bin)
+        public CInstructionTMovS(List<Object> args, List<byte> bin)
         {
-            OPCode = 0x58;
+            OPCode = 0xB;
             Args = args;
-            DisplayString = ("FuncExist PUSH<bool> Object #" + Args[0].ToString() + "func #" + Args[1].ToString() + "w/ " + Args[2].ToString() + " args exists; POP " + Args[3].ToString());
+            StringConstant = "";
+            DisplayString = ("TMOV<string> [" + Args[0].ToString() + "] <- @" + Convert.ToInt32(Args[1]).ToString("X5"));
             binaryRepresentation = bin;
         }
+
+        public CInstructionTMovS(List<Object> args, List<byte> bin, string strConst)
+        {
+            OPCode = 0xB;
+            Args = args;
+            StringConstant = strConst;
+            DisplayString = "TMOV<string> taskVar #" + Args[0].ToString() + " <- @" + Convert.ToInt32(Args[1]).ToString("X5") + " \"" + strConst + "\"";
+            binaryRepresentation = bin;
+        }
+
+        public string StringConstant { get; set; }
 
         public override string ToString()
         {

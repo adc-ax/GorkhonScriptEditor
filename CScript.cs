@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Reflection.Emit;
 using System.Windows.Documents;
 
 namespace GorkhonScriptEditor
@@ -24,6 +25,7 @@ namespace GorkhonScriptEditor
         private String stringBlock;
         private List<byte> stringBlockBytes;
         private UInt32 numInstructions;
+        private UInt32 numInstructionsOffset = 0;
         private Int32 stringBlockLength;
         private CControlFlowGraph flowGraph;
         private Int32 offset;
@@ -33,11 +35,17 @@ namespace GorkhonScriptEditor
         public List<CFunction> listFunctions;
 
         public List<short> listGlobalVarTypes;
+
+        [ObservableProperty]
         public List<CGlobalVar> listGlobalVars;
         private List<int> listLabelIndices;
 
         private List<Int32> listSubroutineIndices;
         private List<String> listLines;
+
+        //#TODO: Implement data constant extraction
+        [ObservableProperty]
+        public List<CData> dataConstants;
 
         //#TODO: Fully integrate CString
         public Dictionary<Int32, String> listStringConstants;
@@ -47,6 +55,13 @@ namespace GorkhonScriptEditor
         public List<CString> stringConstants;
 
         public List<IInstruction> listInstructions;
+
+        [ObservableProperty]
+        public Int32 sectionAA;
+        [ObservableProperty]
+        public Int32 sectionAB;
+
+        private int SectionAAoffset;
 
         [ObservableProperty]
         public List<CLabel> labels;
@@ -67,10 +82,16 @@ namespace GorkhonScriptEditor
 
         public int numFunctions;
 
+        //#TODO: refactor function adding / binary reconstruction
+
+        public int numFunctionsOffset = 0;
+
+        public string ScriptName = "";
+
         public Int32 numStringConstants;
 
         public Int32 InstructionBlockOffset;
-
+        //#TODO: throughout this file remove all the relaycommand/observableproperty stuff to move it into the viewmodel eventually for better separation
         [RelayCommand]
         private void RecreateScript() 
         {
@@ -129,7 +150,23 @@ namespace GorkhonScriptEditor
             flowGraph = new(listInstructions);
         }
 
-        private IInstruction createInstruction(byte OPCode, Int32 insID, UInt32 byteOffset)
+        public void AddFunction(string name, int args) 
+        {
+                ListFunctions.Add(new(name, args, ListFunctions.Count));
+        }
+
+        public IInstruction AddInstruction(byte OPCode) 
+        {
+            IInstruction lastIns = listInstructions[^1];
+            int offset = 0;
+            byte[] arrayy = {0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00};
+            
+            IInstruction newIns = createInstruction(OPCode, (int)lastIns.ID+1, lastIns.ByteOffset + (uint)lastIns.binaryRepresentation.Count(),ref offset, ref arrayy);
+            listInstructions.Add(newIns);
+            return newIns;
+        }
+
+        private IInstruction createInstruction(byte OPCode, Int32 insID, UInt32 byteOffset, ref Int32 offset, ref byte[] binaryData)
         {
             List<object> args = new();
             List<byte> binaryRepresentation = new();
@@ -137,6 +174,7 @@ namespace GorkhonScriptEditor
             binaryRepresentation.Add((byte)0);
             int binarySize;
             IInstruction newIns;
+            
             switch (OPCode)
             {
                 // 0x00 Mov
@@ -302,7 +340,7 @@ namespace GorkhonScriptEditor
                         newIns = new CInstructionTMovB(args, binaryRepresentation);
                         break;
                     }
-                // 0x09 TMovI - STUB
+                // 0x09 TMovI 
                 case 0x09:
                     {
                         binarySize = 8;
@@ -316,10 +354,10 @@ namespace GorkhonScriptEditor
                         Int32 intConstant = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(intConstant);
                         offset += 4;
-                        newIns = new CInstructionMovI(args, binaryRepresentation);
+                        newIns = new CInstructionTMovI(args, binaryRepresentation);
                         break;
                     }
-                // 0x0A TMovF - STUB
+                // 0x0A TMovF
                 case 0x0A:
                     {
                         binarySize = 8;
@@ -333,10 +371,10 @@ namespace GorkhonScriptEditor
                         float floatConstant = System.BitConverter.ToSingle(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(floatConstant);
                         offset += 4;
-                        newIns = new CInstructionMovF(args, binaryRepresentation);
+                        newIns = new CInstructionTMovF(args, binaryRepresentation);
                         break;
                     }
-                // 0x0B TMovS - STUB
+                // 0x0B TMovS 
                 case 0x0B:
                     {
                         binarySize = 8;
@@ -350,11 +388,11 @@ namespace GorkhonScriptEditor
                         Int32 stringOffset = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(stringOffset / 2);
                         offset += 4;
-                        newIns = new CInstructionMovS(args, binaryRepresentation);
+                        newIns = new CInstructionTMovS(args, binaryRepresentation);
                         //listStringConstants.Add((stringOffset,"test"));
                         break;
                     }
-                // 0x0C TMov - STUB
+                // 0x0C TMovV - STUB
                 case 0x0C:
                     {
                         binarySize = 16;
@@ -378,7 +416,7 @@ namespace GorkhonScriptEditor
                         args.Add(z);
                         offset += 4;
 
-                        newIns = new CInstructionMovV(args, binaryRepresentation);
+                        newIns = new CInstructionTMovV(args, binaryRepresentation);
                         break;
                     }
                 // 0x0D TMovT - STUB
@@ -395,7 +433,7 @@ namespace GorkhonScriptEditor
                         Int32 targetRegister = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(targetRegister);
                         offset += 4;
-                        newIns = new CInstructionMovT(args, binaryRepresentation);
+                        newIns = new CInstructionTMovT(args, binaryRepresentation);
                         break;
                     }
                 // 0x0E Jump
@@ -477,6 +515,9 @@ namespace GorkhonScriptEditor
                         offset += 1;
                         args.Add(boolConst);
                         newIns = new CInstructionPushB(args, binaryRepresentation);
+                        newIns.ID = (uint)insID;
+                        CData cData = new CData(CData.Type.Boolean, boolConst, newIns);
+                        DataConstants.Add(cData);
                         break;
                     }
                 // 0x12 PushI
@@ -491,6 +532,9 @@ namespace GorkhonScriptEditor
                         args.Add(intConstant);
                         offset += 4;
                         newIns = new CInstructionPushI(args, binaryRepresentation);
+                        newIns.ID = (uint)insID;
+                        CData cData = new CData(CData.Type.Integer, intConstant, newIns);
+                        DataConstants.Add(cData);
                         break;
                     }
                 // 0x13 PushF
@@ -505,6 +549,9 @@ namespace GorkhonScriptEditor
                         args.Add(floatConstant);
                         offset += 4;
                         newIns = new CInstructionPushF(args, binaryRepresentation);
+                        newIns.ID = (uint)insID;
+                        CData cData = new CData(CData.Type.Float, floatConstant, newIns);
+                        DataConstants.Add(cData);
                         break;
                     }
                 // 0x14 PushS
@@ -559,6 +606,15 @@ namespace GorkhonScriptEditor
                         offset += 4;
 
                         newIns = new CInstructionPushVec(args, binaryRepresentation);
+                        newIns.ID = (uint)insID;
+                        List<float> coordsConstant = new List<float>();
+                        coordsConstant.Add(x);
+                        coordsConstant.Add(y);
+                        coordsConstant.Add(z);
+
+                        CData cData = new CData(CData.Type.Coordinates, coordsConstant, newIns);
+                        DataConstants.Add(cData);
+
                         break;
                     }
                 // 0x17 PushV
@@ -599,7 +655,7 @@ namespace GorkhonScriptEditor
                         newIns = new CInstructionPushE(args, binaryRepresentation);
                         break;
                     }
-                // 0x19 PushGE STUB
+                // 0x19 PushGE
                 case 0x19:
                     {
                         /*binarySize = 9;
@@ -697,7 +753,7 @@ namespace GorkhonScriptEditor
                         newIns = new CInstructionSetNull(args, binaryRepresentation);
                         break;
                     }
-                // 0x1E SetNullT - STUB
+                // 0x1E SetNullT
                 case 0x1E:
                     {
                         binarySize = 4;
@@ -708,7 +764,7 @@ namespace GorkhonScriptEditor
                         Int32 argument = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(argument);
                         offset += 4;
-                        newIns = new CInstructionSetNull(args, binaryRepresentation);
+                        newIns = new CInstructionSetNullT(args, binaryRepresentation);
                         break;
                     }
                 // 0x1F Add
@@ -1854,34 +1910,79 @@ namespace GorkhonScriptEditor
                 // 0x58 FuncExist
                 case 0x58:
                     {
-                        binarySize = 0;
+                        //58 00 04 00 00 00 03 00 00 00 02 00 00 00 01
+                        binarySize = 13;
                         int startingOffset = offset;
+                        Int32 objectPointer = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(objectPointer);
+                        offset += 4;
+
+                        
                         Int32 funcID = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
                         args.Add(funcID);
                         offset += 4;
+                        
 
-                        binarySize += 4;
-                        Int32 int2 = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
-                        args.Add(int2);
+                        Int32 numArgs = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(numArgs);
                         offset += 4;
-                        binarySize += 4;
 
-                        Int32 numBytes = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
-                        args.Add(numBytes);
-                        offset += 4;
-                        binarySize += 4;
+                        byte popNum = binaryData[offset];
+                        args.Add(popNum);
+                        offset += 1;
 
-                        for (int i = 0; i < numBytes; i++)
+                        /*for (int i = 0; i < binarySize; i++)
                         {
                             args.Add(binaryData[offset]);
                             offset += 1;
                             binarySize += 1;
-                        }
+                        }*/
                         for (int i = 0; i < binarySize; i++)
                         {
                             binaryRepresentation.Add(binaryData[startingOffset + i]);
                         }
                         newIns = new CInstructionFuncExist(args, binaryRepresentation);
+                        break;
+                    }
+                // 0x59 FuncExist2
+                case 0x59:
+                    {
+                        //59 00 05 00 00 00 04 00 00 00 03 00 00 00 02 00 00 00 01
+                        binarySize = 17;
+                        int startingOffset = offset;
+                        Int32 objectPointer = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(objectPointer);
+                        offset += 4;
+
+
+                        Int32 funcID = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(funcID);
+                        offset += 4;
+
+
+                        Int32 numArgs = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(numArgs);
+                        offset += 4;
+
+                        Int32 destination = System.BitConverter.ToInt32(binaryData.AsSpan<byte>(offset, 4));
+                        args.Add(destination);
+                        offset += 4;
+
+                        byte popNum = binaryData[offset];
+                        args.Add(popNum);
+                        offset += 1;
+
+                        /*for (int i = 0; i < binarySize; i++)
+                        {
+                            args.Add(binaryData[offset]);
+                            offset += 1;
+                            binarySize += 1;
+                        }*/
+                        for (int i = 0; i < binarySize; i++)
+                        {
+                            binaryRepresentation.Add(binaryData[startingOffset + i]);
+                        }
+                        newIns = new CInstructionFuncExist2(args, binaryRepresentation);
                         break;
                     }
                 default:
@@ -2051,20 +2152,59 @@ namespace GorkhonScriptEditor
         {
             // update header
 
+            int offsetFromStart = 0;
+            List<byte> updatedBytes = new();
+
+            for (; offsetFromStart < numFunctionsOffset; offsetFromStart++)
+            {
+                updatedBytes.Add(binaryData[offsetFromStart]);
+            }
+
             // update strings
 
             // update functions
 
+            int funcNum = ListFunctions.Count;
+            byte[] sizebytes = BitConverter.GetBytes(funcNum);
+
+            for (int i = 0; i < 4; i++)
+            {
+                binaryData[numInstructionsOffset + i] = sizebytes[i];
+                updatedBytes.Add(sizebytes[i]);
+                offsetFromStart++;
+            }
+
+            foreach (var func in ListFunctions)
+            {
+                updatedBytes.AddRange(func.binaryRepresentation);
+                offsetFromStart += func.binaryRepresentation.Count;
+            }
+
             // update tasks + events
+
+            for (int i = SectionAAoffset; i < numInstructionsOffset; i++)
+            {
+                updatedBytes.Add(binaryData[i]);
+
+            }
 
             // update instructions
 
-            List<byte> updatedBytes = new();
+            int insnum = listInstructions.Count;
+            sizebytes = BitConverter.GetBytes(insnum);
 
-            for (int i = 0; i < InstructionBlockOffset; i++)
+            for (int i = 0; i < 4; i++) 
             {
-                updatedBytes.Add(binaryData[i]);
+                binaryData[numInstructionsOffset + i] = sizebytes[i];
+                updatedBytes.Add(sizebytes[i]);
+                offsetFromStart++; 
             }
+            
+
+            /*for (; offsetFromStart < InstructionBlockOffset; offsetFromStart++)
+            {
+                updatedBytes.Add(binaryData[offsetFromStart]);
+            }*/
 
             foreach (var ins in listInstructions)
             {
@@ -2094,7 +2234,8 @@ namespace GorkhonScriptEditor
             stringBlockBytes = new();
             dictStringFormats = new();
             listGlobalVarTypes = new();
-            listGlobalVars = new();
+            ListGlobalVars = new();
+            DataConstants = new();
 
             StringConstants = new();
 
@@ -2201,6 +2342,7 @@ namespace GorkhonScriptEditor
 
             //Collect function info
             numFunctions = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
+            numFunctionsOffset = offset;
             offset += 4;
             for (int i = 0; i < numFunctions; i++)
             {
@@ -2215,10 +2357,20 @@ namespace GorkhonScriptEditor
             //Updated Event parsing, based on Tilalgis's documentation:
             //Section A
             //Collect two integers
-            Int32 sectionAA = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
+            
+
+            SectionAA = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
+            SectionAAoffset = offset;
             offset += 4;
-            Int32 sectionAB = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
+            SectionAB = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
             offset += 4;
+
+            if (!listSubroutineIndices.Contains(SectionAB))
+            {
+                Subroutines.Add(new CSubroutine(SectionAB));
+                listSubroutineIndices.Add(SectionAB);
+            }
+            //Subroutines.Find(i => i.locStart == address).Calls.Add(insID);
 
             //Section B
             Int32 sectionBTaskNum = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
@@ -2298,7 +2450,7 @@ namespace GorkhonScriptEditor
             CTask taskC = new(0, nullListBytes, 0, TaskCEvents,-1);
             //Number of instructions: 
             numInstructions = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
-
+            numInstructionsOffset = (uint)offset;
             offset += 4;
 
             InstructionBlockOffset = offset;
@@ -2308,7 +2460,7 @@ namespace GorkhonScriptEditor
             {
                 byte opcode = binData[offset];
                 offset += 2;
-                listInstructions.Add(createInstruction(opcode, i, (UInt32)offset));
+                listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
             }
 
             //Flow graph (not sure if still necessary in the current iteration)
@@ -2362,6 +2514,8 @@ namespace GorkhonScriptEditor
             }
 
             //CreateStringRepresentation();
+            //DataConstants.Sort((a, b) => a.dataType.CompareTo(b.dataType));
+            DataConstants = DataConstants.OrderBy(x => x.dataType).ThenBy(x => x.LocationString).ToList<CData>();
             return true;
         }
 

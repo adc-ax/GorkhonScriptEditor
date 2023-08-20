@@ -69,12 +69,12 @@ namespace GorkhonScriptEditor
 
         private void Manual_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Early-stage work in progress, importing more complex scripts can result in a crash, editing is limited and rudimentary.","Help");
+            MessageBox.Show("Early-stage work in progress, importing more complex scripts can result in a crash, editing is somewhat limited for now. Suggested course of action: redirect subroutine of interest to a new one appended to the end of the file","Help");
         }
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Gorkhon Script Editor 0.1.0\nhttps://github.com/adc-ax/GorkhonScriptEditor\nNo affiliation with Ice-Pick Lodge \nAdditional research: RoSoDude, DigiDragon7, \nTilalgis, rathologic \nBuild date: 08/13/2023", "About");
+            MessageBox.Show("Gorkhon Script Editor 0.1.1\nhttps://github.com/adc-ax/GorkhonScriptEditor\nNo affiliation with Ice-Pick Lodge \nAdditional research: RoSoDude, DigiDragon7, \nTilalgis, rathologic \nBuild date: 08/20/2023", "About");
         }
 
         private void OpenParsed_Click(object sender, RoutedEventArgs e)

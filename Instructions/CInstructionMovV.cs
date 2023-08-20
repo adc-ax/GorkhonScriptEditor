@@ -7,7 +7,7 @@ namespace GorkhonScriptEditor.Instructions
     {
         public CInstructionMovV(List<Object> args, List<byte> bin)
         {
-            OPCode = 0x16;
+            OPCode = 0x5;
             Args = args;
             DisplayString = ("MOV<coordinates> (" + Args[1].ToString() + "; " + Args[2].ToString() + "; " + Args[3].ToString() + ") -> [" + Args[0].ToString() + "]");
             binaryRepresentation = bin;

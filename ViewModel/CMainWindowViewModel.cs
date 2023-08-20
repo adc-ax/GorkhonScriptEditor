@@ -40,8 +40,26 @@ namespace GorkhonScriptEditor.ViewModel
         [ObservableProperty]
         public bool interfaceEnabled = false;
 
+        public List<int> lineNav = new List<int>();
+
+        //#TODO: implement proper forward/back navigation system
+        //Make sure the list does not get expanded by pressing the forward/back arrows, this is paramount
+
+        int navIndex = 0;
+
+        [ObservableProperty]
+        public List<string> navList = new();
+
+        [ObservableProperty]
+        public bool canGoForward = false;
+
+        [ObservableProperty]
+        public bool canGoBack = false;
+
+        private bool addLine = true;
+
         [RelayCommand]
-        private void GotoLine(string tar)
+        public void GotoLine(string tar)
         {
             if (state == ProgramState.Loaded)
             {
@@ -61,6 +79,15 @@ namespace GorkhonScriptEditor.ViewModel
                         }
                     }
                     LineOfInterest = line;
+                    if (addLine) 
+                    {
+                        NavList.Add(tar);
+                        if (NavList.Count > 1) { CanGoBack = true; }
+                        
+                        navIndex = navList.Count - 1;
+                        CanGoForward = false;
+                    }
+                    addLine = true;                        
                 }
                 catch 
                 {
@@ -70,7 +97,77 @@ namespace GorkhonScriptEditor.ViewModel
         }
 
         [RelayCommand]
-        private void LoadBinary()
+        public void GoForward() 
+        {
+            if (CanGoForward && navIndex < NavList.Count-1) 
+            {
+                navIndex++;
+                addLine = false;
+                GotoLine(NavList[navIndex]);
+                if (navIndex == NavList.Count-1) 
+                {
+                    CanGoForward = false;
+                }
+                addLine = true;
+                CanGoBack = true;
+            }
+            
+        }
+
+        [RelayCommand]
+        public void GoBack() 
+        {
+            if (CanGoBack && navIndex > 0) 
+            {
+                navIndex--;
+                addLine = false;
+                GotoLine(NavList[navIndex]);
+                if (navIndex == 0) 
+                {
+                    CanGoBack = false;
+                }
+                CanGoForward = true;
+                addLine = true;
+            }
+            
+        }
+
+        [RelayCommand]
+        public void AddFunction() 
+        {
+
+            try
+            {
+                Int32 args = Convert.ToInt32(NewFunctionArguments, 10);
+                MainScript.AddFunction(NewFunctionName, args);
+                MainScript.UpdateBinaryRepresentation();
+            }
+            catch 
+            { 
+            
+            }
+
+                
+        }
+        
+        [RelayCommand]
+        public void AddString() { }
+
+        [ObservableProperty]
+        private string newFunctionName = "Function name";
+
+        [ObservableProperty]
+        private string newFunctionArguments = "Number of arguments";
+
+        [RelayCommand]
+        public void AddInstruction() 
+        {
+            MainScript.AddInstruction(0x00);
+            MainScript.UpdateBinaryRepresentation();
+        }
+
+        [RelayCommand]
+        public void LoadBinary()
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
 
@@ -91,9 +188,14 @@ namespace GorkhonScriptEditor.ViewModel
 
                 MainScript = new CScript(binaryData);
 
+                //Perhaps find a more elegant solution
+                MainScript.ScriptName = openFileDialog.FileName.Split('\\')[^1];
+
                 state = ProgramState.Loaded;
                 InterfaceEnabled = true;
-                LineOfInterest = MainScript.Lines[0];
+
+                //Temporarily disabling this
+                //LineOfInterest = MainScript.Lines[0];
 
                 //Save a backup file here
                 System.IO.File.WriteAllBytes(openFileDialog.FileName + ".gse_bak", binaryData);
@@ -101,7 +203,7 @@ namespace GorkhonScriptEditor.ViewModel
         }
 
         [RelayCommand]
-        private void ExportScript()
+        public void ExportScript()
         {
 
             if (state == ProgramState.Loaded)
@@ -109,9 +211,10 @@ namespace GorkhonScriptEditor.ViewModel
                 Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
 
                 //saveFileDialog.DefaultExt = ".muscript";
-                saveFileDialog.DefaultExt = ".txt";
+                saveFileDialog.DefaultExt = ".bin";
+                saveFileDialog.FileName = MainScript.ScriptName;
                 saveFileDialog.AddExtension = true;
-                saveFileDialog.Filter = "Parsed script (txt)|*.txt|Pathologic script file|*.bin";
+                saveFileDialog.Filter = "Pathologic script file|*.bin|Parsed script (txt)|*.txt";
 
                 Nullable<bool> result = saveFileDialog.ShowDialog();
 
@@ -119,20 +222,22 @@ namespace GorkhonScriptEditor.ViewModel
                 {
                     String fileName = saveFileDialog.FileName;
 
-                    if (saveFileDialog.FilterIndex == 1)
+                    if (saveFileDialog.FilterIndex == 2)
                     {
                         String[] test = { "Text exporting temporarily disabled", "until parsing into text is reworked" };
                         System.IO.File.WriteAllLines(fileName, test);
                         //MessageBox.Show("Text exporting temporarily disabled until parsing into text is reworked");
                         return;
                     }
-                    if (saveFileDialog.FilterIndex == 2)
+                    if (saveFileDialog.FilterIndex == 1)
                     {
                         foreach (var line in ListLines)
                         {
                             line.UpdateInstructionFromEditor();
                         }
                         MainScript.UpdateBinaryRepresentation();
+                        WindowTitle = "Gorkhon Script Editor: " + saveFileDialog.FileName;
+                        MainScript.ScriptName = saveFileDialog.FileName.Split('\\')[^1];
                         System.IO.File.WriteAllBytes(fileName, MainScript.binaryData);
                         return;
                     }

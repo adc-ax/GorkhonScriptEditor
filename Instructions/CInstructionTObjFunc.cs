@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x55;
             Args = args;
-            DisplayString = "OBJFUNC Object[" + args[0].ToString() + "], FUNC " + args[1].ToString();
+            DisplayString = "TOBJFUNC Object taskVar#" + args[0].ToString() + ", FUNC " + args[1].ToString();
             binaryRepresentation = bin;
         }
 

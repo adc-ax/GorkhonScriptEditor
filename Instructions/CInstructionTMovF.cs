@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace GorkhonScriptEditor.Instructions
 {
-    class CInstructionFuncExist : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, IInstruction
+    class CInstructionTMovF : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, IInstruction
     {
-        public CInstructionFuncExist(List<Object> args, List<byte> bin)
+        public CInstructionTMovF(List<Object> args, List<byte> bin)
         {
-            OPCode = 0x58;
+            OPCode = 0xA;
             Args = args;
-            DisplayString = ("FuncExist PUSH<bool> Object #" + Args[0].ToString() + "func #" + Args[1].ToString() + "w/ " + Args[2].ToString() + " args exists; POP " + Args[3].ToString());
+            DisplayString = ("TMOV<float> = " + Args[1].ToString() + " -> taskVar #" + Args[1].ToString());
             binaryRepresentation = bin;
         }
 

@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 7;
             Args = args;
-            DisplayString = ("TMOV stack[" + Args[0].ToString() + "] -> stack[" + Args[1].ToString() + "]");
+            DisplayString = ("MOV stack[" + Args[0].ToString() + "] -> taskVar #" + Args[1].ToString());
             binaryRepresentation = bin;
         }
 

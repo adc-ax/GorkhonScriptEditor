@@ -19,7 +19,7 @@ namespace GorkhonScriptEditor.Instructions
             OPCode = 4;
             Args = args;
             StringConstant = strConst;
-            DisplayString = "MOVS [" + Args[0].ToString() + "] <- @" + Args[1].ToString() + " \"" + strConst + "\"";
+            DisplayString = "MOV<string> [" + Args[0].ToString() + "] <- @" + Convert.ToInt32(Args[1]).ToString("X5") + " \"" + strConst + "\"";
             binaryRepresentation = bin;
         }
 

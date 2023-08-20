@@ -9,7 +9,7 @@ namespace GorkhonScriptEditor.Instructions
         {
             OPCode = 0x15;
             Args = args;
-            DisplayString = ("PUSH<T> =" + Args[0].ToString());
+            DisplayString = ("PUSH taskVar #" + Args[0].ToString());
             binaryRepresentation = bin;
         }
 

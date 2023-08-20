@@ -9,15 +9,42 @@ namespace GorkhonScriptEditor
 {
     public partial class CData : ObservableRecipient
     {
-        enum Type { Boolean = 0,Integer,Float,String,Coordinates,Pointer }
+        public enum Type { Boolean = 1,Integer,Float,String,Coordinates,Pointer }
 
-        Type dataType = Type.Boolean;
+        [ObservableProperty]
+        public IInstruction instructionRef;
+
+        public Type dataType = Type.Boolean;
+
+
         [ObservableProperty]
         object value = null;
 
-        CData(int type, object val) 
-        { 
-            dataType = (Type)type; Value = val; 
+        [ObservableProperty]
+        public String locationString;
+
+        public CData(Type type, object val, IInstruction iRef)
+        {
+            dataType = type; Value = val;
+            this.InstructionRef = iRef;
+            LocationString = InstructionRef.ID.ToString("X5");
+        }
+
+        public override string ToString()
+        {
+            string stringRep = "";
+            stringRep += "0x" + InstructionRef.ID.ToString("X5") +": ";
+            stringRep += dataType.ToString().ToLowerInvariant() + " ";
+            if (dataType == Type.Coordinates)
+            {
+                stringRep += string.Join(", ", ((List<float>)Value).ToArray());
+            }
+            else
+            {
+                stringRep += Value.ToString();
+            }
+            
+            return stringRep;
         }
 
     }

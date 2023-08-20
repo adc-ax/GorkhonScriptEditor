@@ -90,7 +90,7 @@ namespace GorkhonScriptEditor.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pathologic Script Viewer v0.14.
+        ///   Looks up a localized string similar to GSE 0.1.1.
         /// </summary>
         public static string VersionString {
             get {
