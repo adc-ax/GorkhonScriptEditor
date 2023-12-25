@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Reflection.Emit;
+using System.Text;
 using System.Windows.Documents;
 
 namespace GorkhonScriptEditor
@@ -32,7 +33,7 @@ namespace GorkhonScriptEditor
         private int stringBlockOffset;
 
         [ObservableProperty]
-        public List<CFunction> listFunctions;
+        public ObservableCollection<CFunction> listFunctions;
 
         public List<short> listGlobalVarTypes;
 
@@ -52,7 +53,7 @@ namespace GorkhonScriptEditor
         public Dictionary<Int32, bool> dictStringFormats;
 
         [ObservableProperty]
-        public List<CString> stringConstants;
+        public ObservableCollection<CString> stringConstants;
 
         public List<IInstruction> listInstructions;
 
@@ -92,8 +93,8 @@ namespace GorkhonScriptEditor
 
         public Int32 InstructionBlockOffset;
         //#TODO: throughout this file remove all the relaycommand/observableproperty stuff to move it into the viewmodel eventually for better separation
-        [RelayCommand]
-        private void RecreateScript() 
+        
+        public void RecreateScript() 
         {
             UpdateBinaryRepresentation();
             UpdateFromBinary(this.binaryData);
@@ -153,6 +154,24 @@ namespace GorkhonScriptEditor
         public void AddFunction(string name, int args) 
         {
                 ListFunctions.Add(new(name, args, ListFunctions.Count));
+        }
+
+        public void AddString(string text, bool isUTF8) 
+        {
+            int offset = StringConstants.Last().StartOffset + StringConstants.Last().BinaryRepresentation.Count + (StringConstants.Last().IsUTF8 ? 2 : 1);
+            var bytes = Encoding.Unicode.GetBytes(text);
+            if (!isUTF8) 
+            { 
+                bytes = Encoding.Unicode.GetBytes(text); 
+            }
+            else
+            {
+                bytes = Encoding.UTF8.GetBytes(text);
+            }
+            List<byte> listBytes = new();
+            listBytes.AddRange(bytes);
+            CString stringConstant = new(!isUTF8, text, offset, listBytes);
+            StringConstants.Add(stringConstant);
         }
 
         public IInstruction AddInstruction(byte OPCode) 
@@ -2155,13 +2174,47 @@ namespace GorkhonScriptEditor
             int offsetFromStart = 0;
             List<byte> updatedBytes = new();
 
-            for (; offsetFromStart < numFunctionsOffset; offsetFromStart++)
+            // update strings
+            //Counting up to string block
+            for (; offsetFromStart < stringBlockOffset-4; offsetFromStart++)
             {
                 updatedBytes.Add(binaryData[offsetFromStart]);
             }
 
-            // update strings
+            int stringBlockSize = StringConstants.Last().StartOffset + StringConstants.Last().BinaryRepresentation.Count + (StringConstants.Last().IsUTF8 ? 2  : 1);
+            byte[] sizeStringBlockBytes = BitConverter.GetBytes(stringBlockSize);
 
+
+            //Add the 4-byte string block size first
+            for (int i = 0; i < 4; i++)
+            {
+                binaryData[numInstructionsOffset + i] = sizeStringBlockBytes[i];
+                updatedBytes.Add(sizeStringBlockBytes[i]);
+                offsetFromStart++;
+            }
+            //Add every string constant afterwards
+            foreach (var str in StringConstants) 
+            {
+                updatedBytes.AddRange(str.BinaryRepresentation);
+                updatedBytes.Add(0x0);
+                if (str.IsUTF8) 
+                {
+                    updatedBytes.Add(0x0);
+                }
+                //offsetFromStart += str.BinaryRepresentation.Count;
+            }
+
+
+
+            //Counting up to functions
+
+            /* for (; offsetFromStart < numFunctionsOffset; offsetFromStart++)
+             {
+                 updatedBytes.Add(binaryData[offsetFromStart]);
+             }*/
+
+
+            offsetFromStart = numFunctionsOffset - 1;
             // update functions
 
             int funcNum = ListFunctions.Count;

@@ -92,5 +92,10 @@ namespace GorkhonScriptEditor
         {
            // LinesScrollViewer.ScrollIntoView(LinesScrollViewer.Items[15]);
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            //Remove later
+        }
     }
 }

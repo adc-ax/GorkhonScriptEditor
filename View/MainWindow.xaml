@@ -53,7 +53,7 @@
             <Button Command="{Binding LoadBinaryCommand}" BorderBrush="#FFDDDDDD" ToolTip="Import script">
                 <Image Source="/Resources/OpenfileDialog.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
-            <Button  HorizontalAlignment="Left" Command="{Binding MainScript.RecreateScriptCommand}" BorderBrush="#FFDDDDDD" ToolTip="Reassemble script" IsEnabled="{Binding Path=InterfaceEnabled}">
+            <Button  HorizontalAlignment="Left" Command="{Binding RecreateScriptCommand}" BorderBrush="#FFDDDDDD" ToolTip="Reassemble script" IsEnabled="{Binding Path=InterfaceEnabled}">
                 <Image Source="/Resources/Process.png" RenderOptions.BitmapScalingMode="HighQuality"/>
             </Button>
             <Separator/>
@@ -71,9 +71,9 @@
         <ListView x:Name="LinesScrollViewer" Grid.Column="3" Grid.Row="2"  FontFamily="Lucida Console"  Grid.RowSpan="1" FontSize="14" ItemsSource="{Binding MainScript.Lines, Mode=TwoWay}" SelectedItem="{Binding LineOfInterest, Mode=TwoWay}" SelectionChanged="ListView_SelectionChanged"  IsEnabled="{Binding Path=InterfaceEnabled}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <VirtualizingStackPanel Orientation="Horizontal" Margin="3">
+                    <VirtualizingStackPanel Orientation="Horizontal" Margin="3" VirtualizationMode="Recycling">
                         <TextBlock Text="{Binding LineNumber}" Background="Transparent"/>
-                        <TextBox Text="{Binding Operands, Mode=TwoWay}" Background="Transparent" IsReadOnly="False" Width="180"  TextWrapping="Wrap" Margin="15 0 15 0" Foreground="#FF005B99" SelectionBrush="Black" SelectionTextBrush="White" BorderBrush="Transparent"/>
+                        <TextBox  Text="{Binding Operands, Mode=TwoWay}" Background="Transparent" IsReadOnly="False" Width="180"  TextWrapping="Wrap" Margin="15 0 15 0" Foreground="#FF005B99" SelectionBrush="Black" SelectionTextBrush="White" BorderBrush="Transparent"/>
                         <TextBlock Text="{Binding InstructionName}" Background="Transparent"  Width="140"  TextWrapping="Wrap" Margin="15 0 15 0"  Foreground="{Binding OpCodeBrush}"/>
                         <TextBlock Text="{Binding InstructionComment}" Background="Transparent" Width="280" TextWrapping="Wrap" Margin="10 0 0 0" Foreground="{Binding Foreground}"/>
                     </VirtualizingStackPanel>
@@ -288,14 +288,33 @@
             </TabItem>
         </TabControl>
         <StackPanel Orientation="Vertical" Grid.Column="5" Grid.Row="2" Grid.ColumnSpan="2" Background="#FFDDDDDD" IsEnabled="{Binding Path=InterfaceEnabled}" Width="Auto">
-            <TextBlock TextWrapping="Wrap" Text="Quick actions:" HorizontalAlignment="Center" Margin="0,8,0,0"/>
-            <Button Command="{Binding Path=AddInstructionCommand}" Margin="0,8,0,0">Append instruction</Button>
-            <DockPanel>
-                <TextBox DockPanel.Dock="Top" Width="Auto" x:Name="newFuncName" Text="{Binding Path=NewFunctionName,Mode=TwoWay}"></TextBox>
-                <TextBox x:Name="newFuncArgs" Text="{Binding Path=NewFunctionArguments,Mode=TwoWay}"></TextBox>
-            </DockPanel>
-            <Button Command="{Binding Path=AddFunctionCommand}">Add function</Button>
-            
+            <TextBlock TextWrapping="Wrap" Text="Quick actions:" HorizontalAlignment="Center" Margin="0,8,0,0" FontWeight="Bold" FontSize="18"/>
+            <Separator/>
+            <TextBlock TextWrapping="Wrap" Text="New instruction:" HorizontalAlignment="Center" Margin="0,0,0,4" FontSize="14" FontWeight="Bold"/>
+            <Button Command="{Binding Path=AddInstructionCommand}" Margin="0,0,0,0">Append</Button>
+            <Separator/>
+            <TextBlock TextWrapping="Wrap" Text="New engine function:" HorizontalAlignment="Center" Margin="0,0,0,0" FontSize="14" FontWeight="Bold"/>
+            <StackPanel Orientation="Vertical">
+                <StackPanel>
+                    <TextBlock TextWrapping="Wrap" Text="Name:" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+                    <TextBox DockPanel.Dock="Top" Width="Auto" x:Name="newFuncName" Text="{Binding Path=NewFunctionName,Mode=OneWayToSource}"></TextBox>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock TextWrapping="Wrap" Text="Number of args:" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+                    <TextBox x:Name="newFuncArgs" Text="{Binding Path=NewFunctionArguments,Mode=OneWayToSource}"></TextBox>
+                </StackPanel>
+                
+            </StackPanel>
+            <Button Command="{Binding Path=AddFunctionCommand}">Create function</Button>
+            <Separator/>
+            <TextBlock TextWrapping="Wrap" Text="New string constant:" HorizontalAlignment="Center" Margin="0,0,0,4" FontSize="14" FontWeight="Bold"/>
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" Text="Text:" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+                <TextBox DockPanel.Dock="Top" Width="Auto" x:Name="newStringText" Text="{Binding Path=NewStringText,Mode=OneWayToSource}"></TextBox>
+                <CheckBox IsChecked="{Binding Path=IsUTF8, Mode=OneWayToSource}">UTF-8 (For ObjFunc only)</CheckBox>
+                <Button Command="{Binding Path=AddStringCommand}" >Create string</Button>
+            </StackPanel>
+
 
         </StackPanel>
 

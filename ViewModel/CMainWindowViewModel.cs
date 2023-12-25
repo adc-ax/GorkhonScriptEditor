@@ -151,7 +151,14 @@ namespace GorkhonScriptEditor.ViewModel
         }
         
         [RelayCommand]
-        public void AddString() { }
+        public void AddString() 
+        {
+            if (NewStringText != "") 
+            {
+                MainScript.AddString(NewStringText,IsUTF8);
+                MainScript.UpdateBinaryRepresentation();
+            }
+        }
 
         [ObservableProperty]
         private string newFunctionName = "Function name";
@@ -159,11 +166,27 @@ namespace GorkhonScriptEditor.ViewModel
         [ObservableProperty]
         private string newFunctionArguments = "Number of arguments";
 
+        [ObservableProperty]
+        private string newStringText = "";
+
+        [ObservableProperty]
+        private bool isUTF8 = false;
+
         [RelayCommand]
         public void AddInstruction() 
         {
             MainScript.AddInstruction(0x00);
             MainScript.UpdateBinaryRepresentation();
+        }
+
+        [RelayCommand]
+        public void RecreateScript()
+        {
+            foreach (var line in ListLines)
+            {
+                line.UpdateInstructionFromEditor();
+            }
+            MainScript.RecreateScript();
         }
 
         [RelayCommand]
@@ -208,6 +231,7 @@ namespace GorkhonScriptEditor.ViewModel
 
             if (state == ProgramState.Loaded)
             {
+                RecreateScript();
                 Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
 
                 //saveFileDialog.DefaultExt = ".muscript";
