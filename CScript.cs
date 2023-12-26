@@ -11,6 +11,7 @@ using System.Net;
 using System.Reflection.Emit;
 using System.Text;
 using System.Windows.Documents;
+using System.Windows.Forms;
 
 namespace GorkhonScriptEditor
 {
@@ -2294,6 +2295,8 @@ namespace GorkhonScriptEditor
 
             InstructionBlockOffset = 0;
 
+            int instructionsRead = 0;
+
             //Parsing script binary starts here
 
             //Global variables block
@@ -2513,7 +2516,11 @@ namespace GorkhonScriptEditor
             {
                 byte opcode = binData[offset];
                 offset += 2;
+                instructionsRead++;
                 listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
+            }
+            if (instructionsRead != numInstructions) {
+                MessageBox.Show("Invalid instruction count: got " + instructionsRead + " but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             //Flow graph (not sure if still necessary in the current iteration)
