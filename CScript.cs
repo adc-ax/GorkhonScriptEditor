@@ -2514,13 +2514,17 @@ namespace GorkhonScriptEditor
             //Create instruction list
             for (int i = 0; (i < numInstructions) && (offset < binData.Count()); i++)
             {
-                byte opcode = binData[offset];
-                offset += 2;
+                try {
+                    byte opcode = binData[offset];
+                    offset += 2;
+                    listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
+                } catch (IndexOutOfRangeException x) {
+                    MessageBox.Show("Failed to parse instruction " + instructionsRead + " of " + numInstructions, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
                 instructionsRead++;
-                listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
             }
             if (instructionsRead != numInstructions) {
-                MessageBox.Show("Invalid instruction count: got " + instructionsRead + " but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("Wrong instruction count: got " + instructionsRead + " but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             //Flow graph (not sure if still necessary in the current iteration)
