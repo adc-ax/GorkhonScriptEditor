@@ -24,7 +24,8 @@ namespace GorkhonScriptEditor.ViewModel
         public enum ProgramState
         {
             Opened,
-            Loaded
+            Loaded,
+            Broken
         }
 
         [ObservableProperty]
@@ -209,19 +210,36 @@ namespace GorkhonScriptEditor.ViewModel
 
                 WindowTitle = "Gorkhon Script Editor: " + openFileDialog.FileName;
 
-                MainScript = new CScript(binaryData);
+                try
+                {
+                    MainScript = new CScript(binaryData);
 
-                //Perhaps find a more elegant solution
-                MainScript.ScriptName = openFileDialog.FileName.Split('\\')[^1];
+                    //Perhaps find a more elegant solution
+                    MainScript.ScriptName = openFileDialog.FileName.Split('\\')[^1];
 
-                state = ProgramState.Loaded;
-                InterfaceEnabled = true;
+                    state = ProgramState.Loaded;
+                    InterfaceEnabled = true;
 
-                //Temporarily disabling this
-                //LineOfInterest = MainScript.Lines[0];
+                    //Temporarily disabling this
+                    //LineOfInterest = MainScript.Lines[0];
 
-                //Save a backup file here
-                System.IO.File.WriteAllBytes(openFileDialog.FileName + ".gse_bak", binaryData);
+                    //Save a backup file here
+                    System.IO.File.WriteAllBytes(openFileDialog.FileName + ".gse_bak", binaryData);
+
+                } catch (ArgumentException)
+                {
+                    // If the script failed to load, do not enable the interface
+                    WindowTitle = "Gorkhon Script Editor: failed to load " + openFileDialog.FileName;
+                    // TODO: somehow display exception message in the main window
+
+                    state = ProgramState.Broken;
+                    InterfaceEnabled = false;
+                    // Workaround - ideally we would close the open script instead, once
+                    // "close current script" functionality is added. Need to ensure that
+                    // a load failure doesn't cause unintended behavior if the user resumes
+                    // interacting with the previously successfully loaded script.
+                }
+
             }
         }
 

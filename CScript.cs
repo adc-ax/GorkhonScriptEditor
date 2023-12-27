@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using GorkhonScriptEditor.Instructions;
+using Microsoft.CodeAnalysis.Operations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -2296,13 +2297,15 @@ namespace GorkhonScriptEditor
             InstructionBlockOffset = 0;
 
             int instructionsRead = 0;
+            string errorMessage = "";
 
             //Parsing script binary starts here
 
             if (binData.Length < 16) {
                 // Sanity check before we try to extract numGlobalVars
-                MessageBox.Show("File is too short to be a valid script: " + binData.Length + " bytes", "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                errorMessage = "File is too short to be a valid script: " + binData.Length + " bytes";
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
             }
 
             //Global variables block
@@ -2310,8 +2313,9 @@ namespace GorkhonScriptEditor
             numGlobalVars = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
             if (numGlobalVars < 0 | numGlobalVars > binData.Length) {
                 // Avoid possible infinite loop
-                MessageBox.Show("Invalid number of global variables: " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                errorMessage = "Invalid number of global variables: " + numGlobalVars;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
             }
             offset += 4;
 
@@ -2332,7 +2336,8 @@ namespace GorkhonScriptEditor
                         offset += varNameLength;
                     }
                     catch (ArgumentException) {
-                        MessageBox.Show("Failed to parse global variable #" + i + " of " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        errorMessage = "Failed to parse global variable #" + i + " of " + numGlobalVars;
+                        MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         break;
                     }
                 }
@@ -2353,8 +2358,9 @@ namespace GorkhonScriptEditor
                 stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
             } catch (ArgumentException)
             {
-                MessageBox.Show("Failed to parse string block of length " + stringBlockLength, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                errorMessage = "Failed to parse string block of length " + stringBlockLength;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
                 // This error is unrecoverable; stop the loading process
             }
 
