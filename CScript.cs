@@ -2313,10 +2313,17 @@ namespace GorkhonScriptEditor
                 string varName = "N/A";
                 if (hasName)
                 {
-                    byte varNameLength = binData[offset];
-                    offset++;
-                    varName = System.Text.Encoding.UTF8.GetString(new ArraySegment<byte>(binData, offset, varNameLength).ToArray());
-                    offset += varNameLength;
+                    try
+                    {
+                        byte varNameLength = binData[offset];
+                        offset++;
+                        varName = System.Text.Encoding.UTF8.GetString(new ArraySegment<byte>(binData, offset, varNameLength).ToArray());
+                        offset += varNameLength;
+                    }
+                    catch (ArgumentException x) {
+                        MessageBox.Show("Failed to parse global variable #" + i + " of " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    }
                 }
                 CGlobalVar newVar = new(varType, varName);
                 newVar.ID = i.ToString();
@@ -2519,12 +2526,12 @@ namespace GorkhonScriptEditor
                     offset += 2;
                     listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
                 } catch (IndexOutOfRangeException x) {
-                    MessageBox.Show("Failed to parse instruction " + instructionsRead + " of " + numInstructions, "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show("Failed to parse instruction #" + instructionsRead + " of " + numInstructions, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 instructionsRead++;
             }
             if (instructionsRead != numInstructions) {
-                MessageBox.Show("Wrong instruction count: got " + instructionsRead + " but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("Wrong instruction count: read " + instructionsRead + " instructions, but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             //Flow graph (not sure if still necessary in the current iteration)
