@@ -2297,7 +2297,7 @@ namespace GorkhonScriptEditor
             InstructionBlockOffset = 0;
 
             int instructionsRead = 0;
-            string errorMessage = "";
+            string errorMessage = "Unknown error";
 
             //Parsing script binary starts here
 
