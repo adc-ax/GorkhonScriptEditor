@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using GorkhonScriptEditor.Instructions;
+using Microsoft.CodeAnalysis.Operations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,6 +12,7 @@ using System.Net;
 using System.Reflection.Emit;
 using System.Text;
 using System.Windows.Documents;
+using System.Windows.Forms;
 
 namespace GorkhonScriptEditor
 {
@@ -81,7 +83,7 @@ namespace GorkhonScriptEditor
 
         public List<string> stringRepresentation;
 
-        public int numFunctions;
+        public UInt32 numFunctions;
 
         //#TODO: refactor function adding / binary reconstruction
 
@@ -2294,11 +2296,26 @@ namespace GorkhonScriptEditor
 
             InstructionBlockOffset = 0;
 
+            int instructionsRead = 0;
+            string errorMessage = "Unknown error";
+
             //Parsing script binary starts here
+
+            if (binData.Length < 16) {
+                // Sanity check before we try to extract numGlobalVars
+                errorMessage = "File is too short to be a valid script: " + binData.Length + " bytes";
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
 
             //Global variables block
             offset = 0;
             numGlobalVars = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
+            if (numGlobalVars > binData.Length) {
+                errorMessage = "Invalid number of global variables: " + numGlobalVars;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
             offset += 4;
 
             for (int i = 0; i < numGlobalVars; i++)
@@ -2310,10 +2327,18 @@ namespace GorkhonScriptEditor
                 string varName = "N/A";
                 if (hasName)
                 {
-                    byte varNameLength = binData[offset];
-                    offset++;
-                    varName = System.Text.Encoding.UTF8.GetString(new ArraySegment<byte>(binData, offset, varNameLength).ToArray());
-                    offset += varNameLength;
+                    try
+                    {
+                        byte varNameLength = binData[offset];
+                        offset++;
+                        varName = System.Text.Encoding.UTF8.GetString(new ArraySegment<byte>(binData, offset, varNameLength).ToArray());
+                        offset += varNameLength;
+                    }
+                    catch (ArgumentException) {
+                        errorMessage = "Failed to parse global variable #" + i + " of " + numGlobalVars;
+                        MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    }
                 }
                 CGlobalVar newVar = new(varType, varName);
                 newVar.ID = i.ToString();
@@ -2323,12 +2348,20 @@ namespace GorkhonScriptEditor
             }
 
             //String block
-            Span<byte> stringBlockLengthBin = binData.AsSpan<byte>(offset, 4);
-            stringBlockLength = System.BitConverter.ToInt32(stringBlockLengthBin);
-            offset += 4;
+            try {
+                Span<byte> stringBlockLengthBin = binData.AsSpan<byte>(offset, 4);
+                stringBlockLength = System.BitConverter.ToInt32(stringBlockLengthBin);
+                offset += 4;
 
-            stringBlockOffset = offset;
-            stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
+                stringBlockOffset = offset;
+                stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
+            } catch (ArgumentException)
+            {
+                errorMessage = "Failed to parse string block of length " + stringBlockLength;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+                // This error is unrecoverable; stop the loading process
+            }
 
             //Detecting separate strings
 
@@ -2394,9 +2427,17 @@ namespace GorkhonScriptEditor
             offset += stringBlockLength;
 
             //Collect function info
-            numFunctions = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
+            numFunctions = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
             numFunctionsOffset = offset;
             offset += 4;
+
+            if (numFunctions > binData.Length)
+            {
+                errorMessage = "Invalid number of functions: " + numFunctions;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
+
             for (int i = 0; i < numFunctions; i++)
             {
                 byte length = binaryData[offset];
@@ -2505,15 +2546,30 @@ namespace GorkhonScriptEditor
             numInstructions = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
             numInstructionsOffset = (uint)offset;
             offset += 4;
-
             InstructionBlockOffset = offset;
+
+            if (numInstructions > binData.Length)
+            {
+                errorMessage = "Invalid number of instructions: " + numInstructions;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
 
             //Create instruction list
             for (int i = 0; (i < numInstructions) && (offset < binData.Count()); i++)
             {
-                byte opcode = binData[offset];
-                offset += 2;
-                listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
+                try {
+                    byte opcode = binData[offset];
+                    offset += 2;
+                    listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
+                } catch (IndexOutOfRangeException) {
+                    MessageBox.Show("Failed to parse instruction #" + instructionsRead + " of " + numInstructions, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // DO NOT abort: it's useful to see which instructions succeeded loading, if any
+                }
+                instructionsRead++;
+            }
+            if (instructionsRead != numInstructions) {
+                MessageBox.Show("Wrong instruction count: read " + instructionsRead + " instructions, but expected " + numInstructions, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             //Flow graph (not sure if still necessary in the current iteration)
