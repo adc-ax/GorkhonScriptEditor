@@ -83,7 +83,7 @@ namespace GorkhonScriptEditor
 
         public List<string> stringRepresentation;
 
-        public int numFunctions;
+        public UInt32 numFunctions;
 
         //#TODO: refactor function adding / binary reconstruction
 
