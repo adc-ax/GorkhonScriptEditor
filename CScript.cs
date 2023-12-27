@@ -2431,6 +2431,14 @@ namespace GorkhonScriptEditor
             numFunctions = System.BitConverter.ToInt32(binData.AsSpan<byte>(offset, 4));
             numFunctionsOffset = offset;
             offset += 4;
+
+            if (numFunctions < 0 | numFunctions > binData.Length)
+            {
+                errorMessage = "Invalid number of functions: " + numFunctions;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
+
             for (int i = 0; i < numFunctions; i++)
             {
                 byte length = binaryData[offset];
@@ -2539,8 +2547,15 @@ namespace GorkhonScriptEditor
             numInstructions = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
             numInstructionsOffset = (uint)offset;
             offset += 4;
-
             InstructionBlockOffset = offset;
+
+            if (numInstructions < 0 | numInstructions > binData.Length)
+            {
+                // Avoid possible infinite loop
+                errorMessage = "Invalid number of instructions: " + numInstructions;
+                MessageBox.Show(errorMessage, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new ArgumentException(errorMessage);
+            }
 
             //Create instruction list
             for (int i = 0; (i < numInstructions) && (offset < binData.Count()); i++)
