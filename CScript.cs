@@ -2299,9 +2299,20 @@ namespace GorkhonScriptEditor
 
             //Parsing script binary starts here
 
+            if (binData.Length < 16) {
+                // Sanity check before we try to extract numGlobalVars
+                MessageBox.Show("File is too short to be a valid script: " + binData.Length + " bytes", "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
             //Global variables block
             offset = 0;
             numGlobalVars = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
+            if (numGlobalVars < 0) {
+                // Avoid possible infinite loop
+                MessageBox.Show("Invalid number of global variables: " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
             offset += 4;
 
             for (int i = 0; i < numGlobalVars; i++)
@@ -2320,7 +2331,7 @@ namespace GorkhonScriptEditor
                         varName = System.Text.Encoding.UTF8.GetString(new ArraySegment<byte>(binData, offset, varNameLength).ToArray());
                         offset += varNameLength;
                     }
-                    catch (ArgumentException x) {
+                    catch (ArgumentException) {
                         MessageBox.Show("Failed to parse global variable #" + i + " of " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         break;
                     }
@@ -2340,10 +2351,11 @@ namespace GorkhonScriptEditor
 
                 stringBlockOffset = offset;
                 stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
-            } catch (ArgumentException x)
+            } catch (ArgumentException)
             {
                 MessageBox.Show("Failed to parse string block of length " + stringBlockLength, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
+                // This error is unrecoverable; stop the loading process
             }
 
             //Detecting separate strings
@@ -2532,7 +2544,8 @@ namespace GorkhonScriptEditor
                     offset += 2;
                     listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
                 } catch (IndexOutOfRangeException x) {
-                    MessageBox.Show("Failed to parse instruction #" + instructionsRead + " of " + numInstructions, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Failed to parse instruction #" + instructionsRead + " of " + numInstructions, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // DO NOT abort: it's useful to see which instructions succeeded loading, if any
                 }
                 instructionsRead++;
             }
