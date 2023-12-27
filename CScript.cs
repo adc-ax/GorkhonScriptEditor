@@ -2333,12 +2333,18 @@ namespace GorkhonScriptEditor
             }
 
             //String block
-            Span<byte> stringBlockLengthBin = binData.AsSpan<byte>(offset, 4);
-            stringBlockLength = System.BitConverter.ToInt32(stringBlockLengthBin);
-            offset += 4;
+            try {
+                Span<byte> stringBlockLengthBin = binData.AsSpan<byte>(offset, 4);
+                stringBlockLength = System.BitConverter.ToInt32(stringBlockLengthBin);
+                offset += 4;
 
-            stringBlockOffset = offset;
-            stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
+                stringBlockOffset = offset;
+                stringBlockBytes = (new ArraySegment<byte>(binData, offset, stringBlockLength)).ToArray().ToList();
+            } catch (ArgumentException x)
+            {
+                MessageBox.Show("Failed to parse string block of length " + stringBlockLength, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
 
             //Detecting separate strings
 
