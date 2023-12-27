@@ -2308,7 +2308,7 @@ namespace GorkhonScriptEditor
             //Global variables block
             offset = 0;
             numGlobalVars = System.BitConverter.ToUInt32(binData.AsSpan<byte>(offset, 4));
-            if (numGlobalVars < 0) {
+            if (numGlobalVars < 0 | numGlobalVars > binData.Length) {
                 // Avoid possible infinite loop
                 MessageBox.Show("Invalid number of global variables: " + numGlobalVars, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
@@ -2543,7 +2543,7 @@ namespace GorkhonScriptEditor
                     byte opcode = binData[offset];
                     offset += 2;
                     listInstructions.Add(createInstruction(opcode, i, (UInt32)offset,ref this.offset,ref this.binaryData));
-                } catch (IndexOutOfRangeException x) {
+                } catch (IndexOutOfRangeException) {
                     MessageBox.Show("Failed to parse instruction #" + instructionsRead + " of " + numInstructions, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     // DO NOT abort: it's useful to see which instructions succeeded loading, if any
                 }
